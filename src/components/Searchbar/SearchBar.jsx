@@ -1,4 +1,4 @@
-import { Field, Form, Formik } from 'formik';
+import { Formik } from 'formik';
 import { ButtonSearch, Header, Input, SearchForm } from './SearchBar.styled';
 import { BsSearch } from 'react-icons/bs';
 
