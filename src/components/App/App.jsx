@@ -3,6 +3,7 @@ import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { SearchBar } from 'components/Searchbar/SearchBar';
 import { getImages } from 'components/service/API';
 import { Component } from 'react';
+import { AppBox } from './App.styled';
 
 export class App extends Component {
   state = {
@@ -26,9 +27,11 @@ export class App extends Component {
       page: 1,
       query: values.search,
     });
-    getImages(values.search, this.state.page).then(resp => {
-      this.setState({ images: resp.hits });
-    });
+    if (values.search) {
+      getImages(values.search, this.state.page).then(resp => {
+        this.setState({ images: resp.hits });
+      });
+    }
   };
 
   nextPage = () => {
@@ -38,11 +41,11 @@ export class App extends Component {
   render() {
     const images = this.state.images;
     return (
-      <div>
+      <AppBox>
         <SearchBar onSubmit={this.onGetRequest} />
         <ImageGallery images={images} />
         {this.state.query && <Button nextPage={this.nextPage} />}
-      </div>
+      </AppBox>
     );
   }
 }
