@@ -4,33 +4,46 @@ import { SearchBar } from 'components/Searchbar/SearchBar';
 import { getImages } from 'components/service/API';
 import { Component } from 'react';
 import { AppBox } from './App.styled';
+import FadeLoader from 'react-spinners/FadeLoader';
 
 export class App extends Component {
   state = {
     query: '',
     images: [],
     page: 1,
+    loader: false,
   };
 
-  componentDidUpdate(_, prevState) {
-    if (prevState.page !== this.state.page) {
-      getImages(this.state.query, this.state.page).then(resp => {
-        this.setState(prevState => {
-          return { images: [...prevState.images, ...resp.hits] };
+  async componentDidUpdate(_, { page, images }) {
+    if (page !== this.state.page) {
+      try {
+        getImages(this.state.query, this.state.page).then(resp => {
+          this.setState(prevState => {
+            return { images: [...images, ...resp.hits] };
+          });
         });
-      });
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
 
-  onGetRequest = values => {
+  onGetRequest = async ({ search }) => {
     this.setState({
       page: 1,
-      query: values.search,
+      query: search.trim(),
     });
-    if (values.search) {
-      getImages(values.search, this.state.page).then(resp => {
-        this.setState({ images: resp.hits });
-      });
+    if (search.trim()) {
+      try {
+        this.setState({ loader: true });
+        await getImages(search, this.state.page).then(resp => {
+          this.setState({ images: resp.hits });
+        });
+      } catch (error) {
+        console.log(error);
+      } finally {
+        this.setState({ loader: false });
+      }
     }
   };
 
@@ -39,16 +52,27 @@ export class App extends Component {
   };
 
   render() {
-    const images = this.state.images;
+    const { images, query, loader } = this.state;
     return (
       <AppBox>
         <SearchBar onSubmit={this.onGetRequest} />
-        <ImageGallery images={images} />
-        {this.state.query && <Button nextPage={this.nextPage} />}
+        {loader ? (
+          <FadeLoader
+            color="#3f51b5"
+            height={300}
+            width={20}
+            cssOverride={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+        ) : (
+          <ImageGallery images={images} />
+        )}
+        {query && <Button nextPage={this.nextPage} />}
       </AppBox>
     );
   }
 }
-
-// Вынести состояния и пропсы с зис в переменные
-// проверить 30 строку на работу с стейтом
